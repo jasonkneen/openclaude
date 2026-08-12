@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.28.1](https://github.com/Gitlawb/openclaude/compare/v0.28.0...v0.28.1) (2026-08-12)
+
+
+### Bug Fixes
+
+* extend Ling 3.0 Tiny :free availability window to Aug 17 ([ee64d80](https://github.com/Gitlawb/openclaude/commit/ee64d80c2ee70f44739cf3bbf5e57ca14614fd66))
+* Ling 3.0 Tiny :free window back to Aug 13 (official promo end) ([6277bfa](https://github.com/Gitlawb/openclaude/commit/6277bfadbc77aac733d090ad8f6dfdb727289fa6))
+* **web:** link release notes to GitHub ([#2114](https://github.com/Gitlawb/openclaude/issues/2114)) ([c40d663](https://github.com/Gitlawb/openclaude/commit/c40d663b70e9c9e3d3d7be5888b74507f11056d6))
+
 ## [0.28.0](https://github.com/Gitlawb/openclaude/compare/v0.27.0...v0.28.0) (2026-08-11)
 
 
