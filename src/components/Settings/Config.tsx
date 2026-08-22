@@ -37,7 +37,8 @@ import { useTabHeaderFocus } from '../design-system/Tabs.js';
 import { useIsInsideModal } from '../../context/modalContext.js';
 import { SearchBox } from '../SearchBox.js';
 import { isSupportedTerminal, hasAccessToIDEExtensionDiffFeature } from '../../utils/ide.js';
-import { getInitialSettings, getSettingsForSource, updateSettingsForSource } from '../../utils/settings/settings.js';
+import { findSettingSource, getInitialSettings, getSettingsForSource, getSettingsWithSources, updateSettingsForSource } from '../../utils/settings/settings.js';
+import { SourceBadge } from './SourceBadge.js';
 import { getUserMsgOptIn, setUserMsgOptIn } from '../../bootstrap/state.js';
 import { DEFAULT_OUTPUT_STYLE_NAME } from 'src/constants/outputStyles.js';
 import { isEnvTruthy, isRunningOnHomespace } from 'src/utils/envUtils.js';
@@ -85,6 +86,19 @@ type Setting = (SettingBase & {
   type: 'managedEnum';
 });
 type SubMenu = 'Theme' | 'Model' | 'TeammateModel' | 'CompactModel' | 'ExternalIncludes' | 'OutputStyle' | 'ChannelDowngrade' | 'Language' | 'EnableAutoUpdates';
+// Row ids whose displayed value is read from (and written to) settings files,
+// mapped to the actual settings-file key path. Row ids backed only by global
+// config or app state are intentionally absent — a provenance badge would be
+// misleading there.
+const SETTINGS_FILE_KEYS: Record<string, string> = {
+  outputStyle: 'outputStyle',
+  language: 'language',
+  defaultView: 'defaultView',
+  autoUpdatesChannel: 'autoUpdatesChannel',
+  thinkingEnabled: 'alwaysThinkingEnabled',
+  fastMode: 'fastMode',
+  defaultPermissionMode: 'permissions.defaultMode',
+};
 export function Config({
   onClose,
   context,
@@ -149,6 +163,13 @@ export function Config({
   // eagerly even though only the first result is kept.
   const [initialLocalSettings] = useState(() => getSettingsForSource('localSettings'));
   const [initialUserSettings] = useState(() => getSettingsForSource('userSettings'));
+  // Per-key provenance snapshot for the SourceBadge column. getSettingsWithSources()
+  // resets the settings cache, so read it lazily at mount and refresh only when
+  // a setting actually changes (never on hover/scroll/search re-renders).
+  const [settingsSources, setSettingsSources] = useState(() => getSettingsWithSources().sources);
+  React.useEffect(() => {
+    setSettingsSources(getSettingsWithSources().sources);
+  }, [settingsData, currentOutputStyle, currentLanguage, thinkingEnabled, isFastMode, themeSetting]);
   const initialThemeSetting = React.useRef(themeSetting);
   // AppState fields Config may modify — snapshot once at mount.
   const store = useAppStateStore();
@@ -1924,6 +1945,12 @@ export function Config({
                                 {setting_2.value.toString()}
                               </Text>}
                           </Box>
+                          {(() => {
+                            const settingsKey = SETTINGS_FILE_KEYS[setting_2.id];
+                            return settingsKey ? (
+                              <SourceBadge source={findSettingSource(settingsKey, settingsSources)} />
+                            ) : null;
+                          })()}
                         </Box>
                       </React.Fragment>;
           })}
