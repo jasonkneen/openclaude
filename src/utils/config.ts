@@ -295,10 +295,15 @@ export type GlobalConfig = {
   toolHistoryCompressionEnabled: boolean // Compress old tool_result content (shim providers; Anthropic-native only while prompt caching is inactive)
   compactTailTurns?: number // Recent messages preserved verbatim by auto-compact's relevance pruning (default: 3)
   /**
-   * Per-prompt local interactive REPL turn cap (default: 50).
+   * Per-prompt local interactive REPL turn cap (default: 200).
    * Overridden by CLI `--max-turns` and OPENCLAUDE_MAX_TURNS / CLAUDE_CODE_MAX_TURNS.
    */
   replMaxTurns?: number
+  /**
+   * Per-tool modes set via /tools. Only 'off' currently has runtime effect
+   * (removes the tool from the pool); always/ask/auto are display-only.
+   */
+  toolModes?: Record<string, 'always' | 'ask' | 'auto' | 'off'>
   showTurnDuration: boolean // Controls whether to show turn duration message (e.g., "Cooked for 1m 6s")
   // Controls whether to show per-query cache hit/miss stats at the end of each turn.
   // 'off'     — no display

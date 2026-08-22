@@ -29,6 +29,11 @@ import knowledge from './commands/knowledge/index.js'
 import memory from './commands/memory/index.js'
 import repomap from './commands/repomap/index.js'
 import help from './commands/help/index.js'
+import tools from './commands/tools/index.js'
+import handoff from './commands/handoff/index.js'
+import handoffKill from './commands/handoff-kill/index.js'
+import handoffStatus from './commands/handoff-status/index.js'
+import handoffs from './commands/handoffs/index.js'
 import ide from './commands/ide/index.js'
 import init from './commands/init.js'
 import initVerifiers from './commands/init-verifiers.js'
@@ -56,6 +61,7 @@ import resume, { continueCommand } from './commands/resume/index.js'
 import review, { ultrareview } from './commands/review.js'
 import session from './commands/session/index.js'
 import setContextWindow from './commands/set-context-window/index.js'
+import steer from './commands/steer/index.js'
 import share from './commands/share/index.js'
 import skills from './commands/skills/index.js'
 import status from './commands/status/index.js'
@@ -314,6 +320,10 @@ const COMMANDS = memoize((): Command[] => [
   files,
   heapDump,
   help,
+  handoff,
+  handoffKill,
+  handoffStatus,
+  handoffs,
   ide,
   init,
   keybindings,
@@ -341,6 +351,8 @@ const COMMANDS = memoize((): Command[] => [
   resume,
   session,
   setContextWindow,
+  steer,
+  tools,
   skills,
   stats,
   status,
