@@ -6,19 +6,24 @@
 
 **Date:** 2026-08-22
 **Worktree:** `/Users/jkneen/Documents/GitHub/openclaude-crossflow-analysis`
+**Updated:** 2026-08-22 — A1 (steering overlay) corrected after a full read of `src/components/permissions/AskUserQuestionPermissionRequest/` revealed openclaude already ships a richer version of the same overlay. The earlier claim that openclaude "has no tabbed multi-question overlay" was wrong (the fact-checker's directory scan missed this folder).
 
 ---
 
 ## 1. Direction A — Dario → openclaude (primary)
 
-Dario is an *older, simpler* codebase, but it contains a handful of genuinely novel features that openclaude does not have. openclaude is strictly ahead on almost everything else (plugins, tasks, memory, keybindings, providers).
+Dario is an *older, simpler* codebase. A close read of its headline features shows most are already covered by openclaude — including its steering-question overlay, which openclaude supersedes in the permission layer. The one genuinely novel feature is the source badge (A2).
 
-### A1. Steering Questions overlay — HIGH VALUE, PORT AS-IS
+### A1. Steering Questions overlay — DO NOT PORT (already superseded)
 - **Source:** `src/tui/claude/components/steering-questions.mjs` (457 lines)
-- **What:** Multi-tab interactive question overlay — presents tabbed questions with single/multi-select options, custom text input, "chat about this" escape hatch, and a submit-review tab. Answers collected into a record keyed by tab ID.
-- **Why it's useful:** This is a distinct UX pattern for **interactive requirement-gathering** — asking the model several structured questions before starting work. openclaude has `AskUserQuestionTool` (`src/tools/AskUserQuestionTool/`, which can batch 1–4 questions with per-question multiSelect) and `DesktopHandoff.tsx`, but no *tabbed multi-question overlay* — AskUserQuestionTool renders as a single interactive prompt, not a tabbed form. The Dario overlay's distinguishing features are its tab navigation and submit-review tab.
-- **Port effort:** Small. Pure React/Ink component, zero deps beyond `ink-text-input`. Rewrite in TSX under `src/components/` or `src/screens/`. Needs wiring: a slash command (e.g. `/steer`) + a tool or a query-time trigger. openclaude's `AskUserQuestionTool` is the closest sibling — the overlay could ride on top of that tool's flow.
-- **Note:** There is no `steering` skill or overlay component anywhere in openclaude's repo (only an unrelated comment in `src/utils/embeddedTools.ts`). The Dario component is genuinely novel to openclaude.
+- **What:** Multi-tab interactive question overlay — tabbed questions with single/multi-select, custom text input, "chat about this" escape hatch, submit-review tab. Answers keyed by tab ID.
+- **Finding:** openclaude **already has a superset** of this overlay in the permission layer — `src/components/permissions/AskUserQuestionPermissionRequest/`:
+  - `QuestionNavigationBar.tsx` — the same ☐/✔ tab bar + Submit tab + `←`/`→` arrows (with width-aware truncation openclaude-style).
+  - `QuestionView.tsx` — options with `→` focus, multiSelect checkboxes, a "Type something." custom text input, an automatic "Other" (`__other__`) option, a "Respond to Claude" escape hatch (Dario's "Chat about this"), plus previews and image paste Dario lacks.
+  - `SubmitQuestionsView.tsx` — answer review + submit/cancel, warning on unanswered questions.
+  - Driven by `use-multiple-choice-state.ts`; tab switching via `tabs:previous`/`tabs:next` keybindings. It opens whenever the model calls `AskUserQuestionTool`.
+- **What's actually missing:** only the **user-initiated trigger**. Dario exposes a hidden `/steer` command (`steer-overlay`, `src/tui/claude/main.mjs:837`) that opens the overlay with hardcoded demo questions when run manually, plus a Promise-based `showSteeringQuestions(data)` hook (`main.mjs:3503`) callable from the agent loop. openclaude's dialog opens only when the model calls the tool — there is no `/steer` command a user can run to launch their own structured requirement-gathering session.
+- **Recommendation:** do NOT port the component — the existing one is strictly richer. If wanted, add a small `/steer` slash command that reuses `AskUserQuestionPermissionRequest` rather than a new overlay. The only micro-feature Dario has that the existing dialog lacks is number-key quick-select (1–9).
 
 ### A2. Dual config reading + Source Badge — MEDIUM VALUE, CONCEPT
 - **Source:** `src/tui/claude/components/source-badge.mjs` (60 lines), `src/config/` (dual read of `~/.dario` + `~/.claude`)
@@ -130,7 +135,7 @@ openclaude tools that Dario lacks entirely (each a standalone port):
 ## 3. Prioritized Recommendations
 
 ### Take Dario → openclaude (do these)
-1. **Steering Questions overlay** → port to TSX, wire to `AskUserQuestionTool`-adjacent flow. Small effort, distinctive UX win.
+1. ~~**Steering Questions overlay**~~ — **retracted**: openclaude already ships a richer tabbed multi-question overlay in `AskUserQuestionPermissionRequest/`. Only missing piece is a user-initiated `/steer` command (optional, small) that reuses the existing dialog.
 2. **Source Badge + config provenance tracking** → small settings-layer refactor + badge component; high clarity payoff in `/config`.
 
 ### Take openclaude → Dario (do these)
@@ -142,6 +147,7 @@ openclaude tools that Dario lacks entirely (each a standalone port):
 - Dario's plugin npm-install path (openclaude marketplaces are better) — unless direct-npm is a product goal.
 - Dario's TUI loader (openclaude TUI too integrated to make swappable cheaply).
 - Dario's background task manager (openclaude's task system is strictly richer).
+- Dario's steering-questions component (openclaude's `AskUserQuestionPermissionRequest` overlay is a strict superset).
 
 ---
 
@@ -150,7 +156,7 @@ openclaude tools that Dario lacks entirely (each a standalone port):
 **Dario → openclaude**
 | Dario file | What to take | openclaude target |
 |---|---|---|
-| `src/tui/claude/components/steering-questions.mjs` | Steering overlay | `src/components/` or `src/screens/` (new) |
+| `src/tui/claude/components/steering-questions.mjs` | `/steer` trigger only (overlay already exists) | `src/commands/` (optional) |
 | `src/tui/claude/components/source-badge.mjs` | Source badge | `src/components/` (new) + `src/utils/settings/settings.ts` |
 | `src/config/` | Dual `.dario`+`.claude` read pattern | settings layer (adapt) |
 | `src/plugins/installer.mjs` | npm-install path (optional) | `src/plugins/` |
@@ -172,7 +178,8 @@ openclaude tools that Dario lacks entirely (each a standalone port):
 
 | Port | Direction | Effort | Value |
 |---|---|---|---|
-| Steering questions overlay | D→O | S | High |
+| Steering questions overlay | D→O | — | None (already superseded) |
+| `/steer` user trigger (optional) | D→O | S | Low-Med |
 | Source badge + provenance | D→O | S-M | Medium |
 | Provider descriptor model | O→D | L | Highest |
 | Coordinator/swarm | O→D | M-L | High |
