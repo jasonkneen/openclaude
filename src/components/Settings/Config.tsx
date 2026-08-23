@@ -98,6 +98,10 @@ const SETTINGS_FILE_KEYS: Record<string, string> = {
   thinkingEnabled: 'alwaysThinkingEnabled',
   fastMode: 'fastMode',
   defaultPermissionMode: 'permissions.defaultMode',
+  spinnerTipsEnabled: 'spinnerTipsEnabled',
+  prefersReducedMotion: 'prefersReducedMotion',
+  promptSuggestionEnabled: 'promptSuggestionEnabled',
+  useAutoModeDuringPlan: 'useAutoModeDuringPlan',
 };
 export function Config({
   onClose,
@@ -165,11 +169,13 @@ export function Config({
   const [initialUserSettings] = useState(() => getSettingsForSource('userSettings'));
   // Per-key provenance snapshot for the SourceBadge column. getSettingsWithSources()
   // resets the settings cache, so read it lazily at mount and refresh only when
-  // a setting actually changes (never on hover/scroll/search re-renders).
+  // a settings-file-backed setting actually changes (never on hover/scroll/search
+  // re-renders). Theme is deliberately excluded: it lives in global config, so
+  // cycling the UI theme must not reset the settings-file cache.
   const [settingsSources, setSettingsSources] = useState(() => getSettingsWithSources().sources);
   React.useEffect(() => {
     setSettingsSources(getSettingsWithSources().sources);
-  }, [settingsData, currentOutputStyle, currentLanguage, thinkingEnabled, isFastMode, themeSetting]);
+  }, [settingsData, currentOutputStyle, currentLanguage, thinkingEnabled, isFastMode, promptSuggestionEnabled]);
   const initialThemeSetting = React.useRef(themeSetting);
   // AppState fields Config may modify — snapshot once at mount.
   const store = useAppStateStore();
@@ -1947,9 +1953,13 @@ export function Config({
                           </Box>
                           {(() => {
                             const settingsKey = SETTINGS_FILE_KEYS[setting_2.id];
-                            return settingsKey ? (
+                            // Forced 'disabled' is env/build/config, not the settings-file value.
+                            if (!settingsKey || (setting_2.id === 'autoUpdatesChannel' && autoUpdaterDisabledReason)) {
+                              return null;
+                            }
+                            return (
                               <SourceBadge source={findSettingSource(settingsKey, settingsSources)} />
-                            ) : null;
+                            );
                           })()}
                         </Box>
                       </React.Fragment>;
