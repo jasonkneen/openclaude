@@ -597,6 +597,14 @@ describe('builtInCommandNames', () => {
     }
     expect(builtInCommandNames()).toContain('steer')
   })
+
+  test('includes the /handoff suite commands', () => {
+    const names = builtInCommandNames()
+    for (const name of ['handoff', 'handoffs', 'handoff-kill', 'handoff-status']) {
+      expect(names).toContain(name)
+    }
+
+  })
 })
 
 describe('isCommand', () => {
