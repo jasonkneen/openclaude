@@ -2016,7 +2016,7 @@ const THEME_LABELS: Record<string, string> = {
   'light-ansi': 'Light mode (ANSI colors only)',
   'dark-nord': 'Dark mode (Nord)',
   'light-nord': 'Light mode (Nord)',
-  'dark-nord-ansi': 'Dark mode Nord (ANSI colors only)'
+  'dark-nord-ansi': 'Dark mode (Nord, ANSI colors only)'
 };
 function NotifChannelLabel(t0) {
   const $ = _c(4);
